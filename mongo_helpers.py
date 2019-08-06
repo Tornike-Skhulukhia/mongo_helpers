@@ -89,12 +89,43 @@ def get_data_from_collection(db, col, sel,
     return cursor_obj if not as_list else list(cursor_obj)
 
 
-#############################################################
-# # test
+def get_distinct_values(db, col, field, filter_sel={}, host="localhost"):
+    '''
+    get list of distinct values for specific field,
+    even if its size is more than 16mb
+
+    arguments:
+        1. db - database name
+        2. col - collection
+        3. field - field for which we want distinct values for
+        4. filter_sel - selector to filter documents(default={})
+        5. host - host(default="localhost")
+    '''
+    client, database = connect(db, host=host)
+
+    #####################################
+    # use mongos aggregation
+    #####################################
+    distincts_ = database[col].aggregate([
+                                    {"$group": {"_id": f"${field}"}}
+                                    ])
+    distincts = [i['_id'] for i in distincts_ if i['_id']]  # remove Nones
+
+    #####################################
+
+    return list(distincts)
+
+
+# #############################################################
+# # # test
 # from pprint import pprint as pp
 
-# insert_in_collection(
-#                     db="hello_db",
+# print(len(a))
+
+# pp(a,  width=100)
+
+# # insert_in_collection(
+#                     db="hello_db",db 
 #                     col="data",
 #                     data=[{"data": "hello new document"}]
 #                 )
