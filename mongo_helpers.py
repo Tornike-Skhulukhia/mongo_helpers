@@ -107,7 +107,8 @@ def get_distinct_values(db, col, field, filter_sel={}, host="localhost"):
     # use mongos aggregation
     #####################################
     distincts_ = database[col].aggregate([
-                                    {"$group": {"_id": f"${field}"}}
+                                    {"$match": filter_sel},
+                                    {"$group": {"_id": f"${field}"}},
                                     ])
     distincts = [i['_id'] for i in distincts_ if i['_id']]  # remove Nones
 
