@@ -1,122 +1,3 @@
-'''
-    helper functions to work with mongodb
-'''
-
-
-def connect(db, host="localhost"):
-    '''
-    connect to database
-    and get client and connection object.
-    client - useful to close connection later.
-
-    arguments:
-        1. db - database name
-        2. host - host(default="localhost")
-    '''
-    from pymongo import MongoClient
-
-    client = MongoClient(host)
-    return (client, client[db])
-
-
-def get_collection_names(db, host="localhost"):
-    '''
-    get all collection names as list
-
-        arguments:
-        1. db - database name
-        2. host - host(default="localhost")
-    '''
-    client, database = connect(db)
-    return database.list_collection_names()
-
-
-def insert_in_collection(db, col, data, host="localhost"):
-    '''
-    save one/multiple records in collection
-
-    arguments:
-        1. db - database name
-        2. col - collection to insert data into
-        3. data - document/documents to insert,
-                  if it is the instance of dict, it
-                  will be directly saved(insertOne),
-                  otherwise all list/tuple/generator
-                  items individually(insertMany)
-        4. host - host(default="localhost")
-    '''
-    client, database = connect(db, host=host)
-    collection = database[col]
-
-    if isinstance(data, dict):
-        collection.insert_one(data)
-    else:  # do not do additional checks here
-        collection.insert_many(data)
-
-    client.close()
-
-
-def get_data_from_collection(db, col, sel,
-                             projection={"_id": 0},
-                             as_list=True,
-                             host="localhost"):
-    '''
-    get data from collection using find method
-
-    arguments:
-        1. db - database name
-        2. col - collection name
-        3. sel - selector to select data
-        4. projection - which fields do we want to get
-                        from matched documents.
-                        if set to other value(default="_id": 0}),
-                        this other value will be used, otherwise
-                        results will have all available fields
-                        except _id.
-                        To get everything including _id-s,
-                        set projection to None
-        5. as_list - if set to True(defatult), result will be list,
-                    otherwise, cursor object with results
-        6. host - host(default="localhost")
-    '''
-    client, database = connect(db, host=host)
-    collection = database[col]
-
-    # get results
-    cursor_obj = collection.find(sel, projection)
-
-    client.close()
-    return cursor_obj if not as_list else list(cursor_obj)
-
-
-def get_distinct_values(db, col, field, filter_sel={}, host="localhost"):
-    '''
-    get list of distinct values for specific field,
-    even if its size is more than 16mb
-
-    arguments:
-        1. db - database name
-        2. col - collection
-        3. field - field for which we want distinct values for
-        4. filter_sel - selector to filter documents(default={})
-        5. host - host(default="localhost")
-    '''
-    client, database = connect(db, host=host)
-
-    #####################################
-    # use mongos aggregation
-    #####################################
-    distincts_ = database[col].aggregate([
-                                    {"$match": filter_sel},
-                                    {"$group": {"_id": f"${field}"}},
-                                    ])
-    distincts = [i['_id'] for i in distincts_ if i['_id']]  # remove Nones
-
-    #####################################
-
-    return list(distincts)
-
-
 def plot_download_speeds(
                     db_name,
                     col,
@@ -163,7 +44,6 @@ def plot_download_speeds(
                         . "lower center"
                         . "upper center"
                         . "center"
-
         8. host - host(default="localhost")
     '''
 
@@ -184,6 +64,8 @@ def plot_download_speeds(
     # if more colors are needed, system ones will be used
     colors = ["red", "blue", "yellow", "lime", "cyan", "magenta", "orange"]
     random.shuffle(colors)
+
+    # from pprint import pprint as pp
 
     ###############################################################
     # define helper functions
@@ -273,10 +155,9 @@ def plot_download_speeds(
             # label
             key = _get_working_key_name(db_name, col, selector)
 
-            # y values to plot
+            # y values to plot(generate x-s automatically)
             data_list = totals_data[key][-max_length_to_graph:]
             y_values = [i[1] for i in data_list]
-
             # generate x values based on time intervals
             x_values = [
                 index * update_interval for index, i in enumerate(data_list)]
@@ -307,25 +188,28 @@ def plot_download_speeds(
                     interval=update_interval * 1000)
     plt.show()
 
-# #############################################################
-# # # test
-# from pprint import pprint as pp
 
-# print(len(a))
+########################
+# test
+########################
+db_name = "usa_states"
+col = "CA"
+host = "localhost"
 
-# pp(a,  width=100)
+selectors = [
+            # {"Status": "ACTIVE"},
+            # {},
+            # {"Status": "CANCELED"},
+            {"Status": i} for i in ['FORFEITED', 'SUSPENDED', 'SURRENDER', 'FTB FORFEITED', 'SOS CANCELED', 'DISSOLVED', 'SOS FORFEITED', 'CONVERTED-OUT', 'CANCELED', 'BANK CONVERSION', 'FTB SUSPENDED', 'TERM EXPIRED', 'INACTIVE', 'SOS/FTB SUSPENDED', 'ACTIVE', 'SOS/FTB FORFEITED', 'MERGED OUT', 'SOS SUSPENDED'][:]
+        ] + [{}]
 
-# # insert_in_collection(
-#                     db="hello_db",db 
-#                     col="data",
-#                     data=[{"data": "hello new document"}]
-#                 )
+max_length_to_graph = 100
+update_interval = 20  # seconds
 
-# a = get_data_from_collection(
-#                             db="hello_db",
-#                             col="data",
-#                             sel={},
-#                             projection=None,
-#                             as_list=True)
-# pp(a)
-# print(len(a))
+
+plot_download_speeds(
+                    db_name,
+                    col,
+                    selectors,
+                    max_length_to_graph,
+                    update_interval)
