@@ -166,9 +166,6 @@ def plot_download_speeds(
 
         8. host - host(default="localhost")
     '''
-
-    from mongo_helpers import connect
-    # from time import sleep
     import matplotlib
     import matplotlib.pyplot as plt
     import random
