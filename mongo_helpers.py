@@ -31,6 +31,22 @@ def get_collection_names(db, host="localhost"):
     return database.list_collection_names()
 
 
+def remove_from_collection(db, col, selector, host="localhost"):
+    '''
+    delete documents from collection, matching given selector.
+
+    arguments:
+        1. db - database name
+        2. col - collection to insert data into
+        3. selector - selector to match documents we want to delete
+        4. host - host(default="localhost")
+    '''
+    client, database = connect(db, host=host)
+    collection = database[col]
+
+    collection.remove(selector)
+
+
 def insert_in_collection(db, col, data, host="localhost"):
     '''
     save one/multiple records in collection
