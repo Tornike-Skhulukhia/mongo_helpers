@@ -31,6 +31,30 @@ def get_collection_names(db, host="localhost"):
     return database.list_collection_names()
 
 
+def get_documents_number(db, col, selector):
+    '''
+    return number of elements with given query in database
+
+    arguments:
+        1. db - database name
+        2. col - name of collection
+        3. selector - selector to count document based on.
+            if is empty ({}, or other Falsy value), speed is much faster,
+            than when filtering.
+    '''
+    client, database = connect(db)
+    collection = database[col]
+
+    # full data case
+    if not selector:
+        ans = collection.estimated_document_count()
+    else:
+        # specific data selection case
+        ans = collection.count_documents(selector)
+    return ans
+
+
+
 def remove_from_collection(db, col, selector, host="localhost"):
     '''
     delete documents from collection, matching given selector.
@@ -157,6 +181,15 @@ def plot_download_speeds(
         3. selectors - what fields to track in database
             (list of dictionary selectors like in mongodb)
 
+            For example, if
+            ---------------------------------------------
+            selectors = [
+                    {"site":"facebook.com"},
+                    {"site":""twitter.com}]
+            ---------------------------------------------
+            graph will show how documents number containing "site" fields
+            facebook.com and twitter.com changes over time in given collection.
+
         4. max_length_to_graph - number of maximum
               visible horizontal axis change to plot(default=100)
 
@@ -212,7 +245,7 @@ def plot_download_speeds(
                 if is empty ({}, or other Falsy value), speed is much faster,
                 than when filtering.
         '''
-        collection = database[collection_name]
+        collection = database_obj[collection_name]
 
         # full data case
         if not selector:
@@ -265,6 +298,8 @@ def plot_download_speeds(
         '''
         # clear
         plt.cla()
+
+        # breakpoint()
 
         # update data
         for selector in selectors:
