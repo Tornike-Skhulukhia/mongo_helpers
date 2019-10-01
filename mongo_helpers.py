@@ -99,7 +99,8 @@ def insert_in_collection(db, col, data, host="localhost"):
 def get_data_from_collection(db, col, sel,
                              projection={"_id": 0},
                              as_list=True,
-                             host="localhost"):
+                             host="localhost",
+                             sort_by=[]):
     '''
     get data from collection using find method
 
@@ -118,12 +119,13 @@ def get_data_from_collection(db, col, sel,
         5. as_list - if set to True(defatult), result will be list,
                     otherwise, cursor object with results
         6. host - host(default="localhost")
+        7. sort_by - sort to use(list of tuples)
     '''
     client, database = connect(db, host=host)
     collection = database[col]
 
     # get results
-    cursor_obj = collection.find(sel, projection)
+    cursor_obj = collection.find(sel, projection, sort=sort_by)
 
     client.close()
     return cursor_obj if not as_list else list(cursor_obj)
