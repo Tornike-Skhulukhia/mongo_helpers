@@ -96,7 +96,7 @@ def insert_in_collection(db, col, data, host="localhost"):
     client.close()
 
 
-def get_data_from_collection(db, col, sel,
+def get_from_from_collection(db, col, sel,
                              projection={"_id": 0},
                              as_list=True,
                              host="localhost",
@@ -371,7 +371,7 @@ def plot_download_speeds(
 #                     data=[{"data": "hello new document"}]
 #                 )
 
-# a = get_data_from_collection(
+# a = get_from_from_collection(
 #                             db="hello_db",
 #                             col="data",
 #                             sel={},
