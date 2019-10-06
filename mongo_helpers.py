@@ -151,7 +151,9 @@ def get_distinct_values(db, col, field, filter_sel={}, host="localhost"):
     distincts_ = database[col].aggregate([
                                     {"$match": filter_sel},
                                     {"$group": {"_id": f"${field}"}},
-                                    ])
+                                    ],
+                                    allowDiskUse=True)
+
     distincts = [i['_id'] for i in distincts_ if i['_id']]  # remove Nones
 
     #####################################
