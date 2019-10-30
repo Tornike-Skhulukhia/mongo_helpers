@@ -96,6 +96,36 @@ def insert_in_collection(db, col, data, host="localhost"):
     client.close()
 
 
+def update_in_collection(db,
+                         col,
+                         selector,
+                         replacement,
+                         upsert=True,
+                         host="localhost",
+                         update_all=False):
+    '''
+    update collection record
+
+    arguments:
+        1. db - database name
+        2. col - collection name
+        3. selector - selector to select record/records
+                which we want to update
+        4. replacement - what to update in record/records
+        5. upsert - set to True, to create new document
+                    if no document found(default=True)
+        6. host - host(default="localhost")
+        7. update_all - set to False to update only first match(default=False)
+    '''
+    client, database = connect(db, host=host)
+    collection = database[col]
+
+    method = [collection.update_one, 
+              collection.update_many][int(update_all)]
+
+    method(selector, replacement, upsert=upsert)
+
+
 def get_from_collection(db, col, sel,
                              projection={"_id": 0},
                              as_list=True,
