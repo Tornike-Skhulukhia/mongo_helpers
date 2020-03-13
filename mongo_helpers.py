@@ -130,7 +130,8 @@ def get_from_collection(db, col, sel,
                              projection={"_id": 0},
                              as_list=True,
                              host="localhost",
-                             sort_by=[]):
+                             sort_by=[],
+                             limit=None):
     '''
     get data from collection using find method
 
@@ -150,12 +151,17 @@ def get_from_collection(db, col, sel,
                     otherwise, cursor object with results
         6. host - host(default="localhost")
         7. sort_by - sort to use(list of tuples)
+        8. limit - number of records to limit output,
+                    default - None - no limit.
     '''
     client, database = connect(db, host=host)
     collection = database[col]
 
     # get results
     cursor_obj = collection.find(sel, projection, sort=sort_by)
+
+    # add limit if necessary
+    if isinstance(limit, int): cursor_obj = cursor_obj.limit(limit)
 
     client.close()
     return cursor_obj if not as_list else list(cursor_obj)
