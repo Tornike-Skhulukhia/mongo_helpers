@@ -131,7 +131,8 @@ def get_from_collection(db, col, sel,
                              as_list=True,
                              host="localhost",
                              sort_by=[],
-                             limit=None):
+                             limit=None,
+                             as_df=False):
     '''
     get data from collection using find method
 
@@ -153,6 +154,7 @@ def get_from_collection(db, col, sel,
         7. sort_by - sort to use(list of tuples)
         8. limit - number of records to limit output,
                     default - None - no limit.
+        9. as_df - if set to True, returns data as pandas DataFrame(default=False)
     '''
     client, database = connect(db, host=host)
     collection = database[col]
@@ -164,7 +166,16 @@ def get_from_collection(db, col, sel,
     if isinstance(limit, int): cursor_obj = cursor_obj.limit(limit)
 
     client.close()
-    return cursor_obj if not as_list else list(cursor_obj)
+     
+    if not as_list:
+        return cursor_obj
+    else:
+        if as_df:
+            import pandas as pd
+            
+            return pd.DataFrame(list(cursor_obj))
+        else:
+            return list(cursor_obj)
 
 
 def get_distinct_values(db, col, field, filter_sel={}, host="localhost"):
